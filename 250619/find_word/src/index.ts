@@ -31,17 +31,23 @@ function findWord(prefix: string): {
 
 	const start = words.findIndex((w) => w.charAt(0) === prefix.charAt(0));
 	const wordCount: { [key: string]: number } = {};
+	const data = new Map<string, number>();
 	for (let i = start; i < words.length; i++) {
 		if (words[i].charAt(0) != prefix.charAt(0)) {
 			break;
 		}
 		if (words[i].length >= prefix.length) {
 			if (words[i].slice(0, prefix.length) === prefix) {
-				wordCount[words[i]] = (wordCount[words[i]] || 0) + 1;
+				// wordCount[words[i]] = (wordCount[words[i]] || 0) + 1;
+				data.set(words[i], 0);
+				if (data.has(words[i])) {
+					let cnt = data.get(words[i]) ?? 0;
+					data.set(words[i], cnt + 1);
+				}
 			}
 		}
 	}
-	// console.log(wordCount);
+	// console.log(data);
 
 	// const sortedObj = Object.fromEntries(entries);
 
