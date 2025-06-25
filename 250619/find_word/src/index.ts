@@ -20,7 +20,62 @@ const pre = queries
 
 // ----------------------------------------
 // Function to find words that start with a given prefix
-words.sort();
+
+class Node {
+  value: string;
+  children: Map<string, Node>;
+  end: number = 0;
+  constructor(value = "") {
+    this.value = value;
+    this.children = new Map();
+  }
+}
+
+class Trie {
+  root: Node;
+
+  constructor() {
+    this.root = new Node();
+  }
+
+  insert(string: string) {
+    let node = this.root;
+    for (let i = 0; i < string.length; i++) {
+      if (!node.children.has(string[i])) {
+        node.children.set(string[i], new Node(node.value + string[i]));
+      }
+      node = node.children.get(string[i])!;
+    }
+	node.end++;
+  }
+
+  // prefix로 시작하는 단어 개수
+  findWordsWithPrefix(prefix: string): string[] {
+    let node = this.root;
+    for (const char of prefix) {
+      if (!node.children.has(char)) return [];
+      node = node.children.get(char)!;
+    }
+    const results: [string, number][] = [];
+    const dfs = (cur: Node, path: string) => {
+      if (cur.end > 0) results.push([path, cur.end]);
+      for (const [char, child] of cur.children) {
+        dfs(child, path + char);
+      }
+    };
+    dfs(node, prefix);
+
+    results.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    return results.slice(0,10).map(([word]) => word); 
+  }
+
+}
+
+const trie = new Trie();
+for(const w of words){
+	trie.insert(w);
+}
+
 
 function findWord(prefix: string): {
 	duration: number;
@@ -28,36 +83,14 @@ function findWord(prefix: string): {
 } {
 	const startTime = performance.now();
 	const result: string[] = [];
-
-	const start = words.findIndex((w) => w.charAt(0) === prefix.charAt(0));
-	const wordCount: { [key: string]: number } = {};
-	const data = new Map<string, number>();
-	for (let i = start; i < words.length; i++) {
-		if (words[i].charAt(0) != prefix.charAt(0)) {
-			break;
-		}
-		if (words[i].length >= prefix.length) {
-			if (words[i].slice(0, prefix.length) === prefix) {
-				// wordCount[words[i]] = (wordCount[words[i]] || 0) + 1;
-				data.set(words[i], 0);
-				if (data.has(words[i])) {
-					let cnt = data.get(words[i]) ?? 0;
-					data.set(words[i], cnt + 1);
-				}
-			}
-		}
-	}
-	// console.log(data);
-
-	// const sortedObj = Object.fromEntries(entries);
-
+	result.push(...trie.findWordsWithPrefix(prefix));
 	// TODO: Implement the logic to find words that start with the given prefix
 	const duration = performance.now() - startTime;
-	console.log(duration);
 	return {
 		duration,
 		result,
 	};
 }
-
-findWord('a');
+for(let i =1 ;i<pre.length;i++){
+	console.log('prefix : ',pre[i],findWord(pre[i]));
+}
